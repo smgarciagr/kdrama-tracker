@@ -1,0 +1,123 @@
+<div class="app">
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">🎬</span>
+        <div>
+          <h1>Kdrama Tracker</h1>
+          <p>Mi lista personal de kdramas</p>
+        </div>
+      </div>
+      <button class="btn-add" (click)="openForm()">+ Agregar Drama</button>
+    </div>
+
+    <div class="stats" *ngIf="stats">
+      <div class="stat"><span class="stat-num">{{ stats.total }}</span><span class="stat-label">Total</span></div>
+      <div class="stat"><span class="stat-num">{{ stats.porVer }}</span><span class="stat-label">📌 Por ver</span></div>
+      <div class="stat"><span class="stat-num">{{ stats.viendo }}</span><span class="stat-label">▶️ Viendo</span></div>
+      <div class="stat"><span class="stat-num">{{ stats.terminado }}</span><span class="stat-label">✅ Terminados</span></div>
+      <div class="stat"><span class="stat-num">{{ stats.promedioRating | number:'1.1-1' }}⭐</span><span class="stat-label">Promedio</span></div>
+    </div>
+  </header>
+
+  <div class="filters">
+    <input class="search-input" type="text" placeholder="🔍 Buscar drama..."
+      [(ngModel)]="filters.search" (input)="onFilter()" />
+    <select class="filter-select" [(ngModel)]="filters.status" (change)="onFilter()">
+      <option value="">Todos los estados</option>
+      <option value="PorVer">📌 Por ver</option>
+      <option value="Viendo">▶️ Viendo</option>
+      <option value="Terminado">✅ Terminado</option>
+    </select>
+    <select class="filter-select" [(ngModel)]="filters.genre" (change)="onFilter()">
+      <option value="">Todos los géneros</option>
+      <option *ngFor="let g of genres" [value]="g">{{ g }}</option>
+    </select>
+  </div>
+
+  <main class="main">
+    <p class="empty" *ngIf="dramas.length === 0">No hay dramas todavía. ¡Agrega el primero! 🎭</p>
+    <div class="drama-grid">
+      <div class="drama-card" *ngFor="let drama of dramas" [class]="'status-' + drama.status.toLowerCase()">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">{{ drama.title }}</h3>
+            <p class="card-original" *ngIf="drama.originalTitle">{{ drama.originalTitle }}</p>
+          </div>
+          <span class="status-badge" [class]="'badge-' + drama.status">
+            {{ statusLabel(drama.status) }}
+          </span>
+        </div>
+        <div class="card-meta">
+          <span>🎭 {{ drama.genre }}</span>
+          <span *ngIf="drama.year">📅 {{ drama.year }}</span>
+          <span>📺 {{ drama.episodes }} eps</span>
+        </div>
+        <div class="card-rating" *ngIf="drama.rating">
+          <span class="stars">{{ getStars(drama.rating) }}</span>
+          <span class="rating-num">{{ drama.rating }}/10</span>
+        </div>
+        <p class="card-review" *ngIf="drama.review">"{{ drama.review }}"</p>
+        <p class="card-notes" *ngIf="drama.notes">📝 {{ drama.notes }}</p>
+        <div class="card-actions">
+          <button class="btn-edit" (click)="openForm(drama)">✏️ Editar</button>
+          <button class="btn-delete" (click)="deleteDrama(drama.id)">🗑️ Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" *ngIf="showForm" (click)="closeForm()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2>{{ editingDrama ? 'Editar Drama' : 'Agregar Drama' }}</h2>
+      <div class="form-group">
+        <label>Título *</label>
+        <input type="text" [(ngModel)]="form.title" placeholder="Crash Landing on You" />
+      </div>
+      <div class="form-group">
+        <label>Título original (coreano)</label>
+        <input type="text" [(ngModel)]="form.originalTitle" placeholder="사랑의 불시착" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Año</label>
+          <input type="number" [(ngModel)]="form.year" placeholder="2024" />
+        </div>
+        <div class="form-group">
+          <label>Episodios *</label>
+          <input type="number" [(ngModel)]="form.episodes" placeholder="16" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Género *</label>
+          <input type="text" [(ngModel)]="form.genre" placeholder="Romance, Accion, Fantasia..." />
+        </div>
+        <div class="form-group">
+          <label>Estado *</label>
+          <select [(ngModel)]="form.status">
+            <option value="PorVer">📌 Por ver</option>
+            <option value="Viendo">▶️ Viendo</option>
+            <option value="Terminado">✅ Terminado</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" *ngIf="form.status === 'Terminado'">
+        <label>Rating (1–10)</label>
+        <input type="number" [(ngModel)]="form.rating" min="1" max="10" placeholder="10" />
+      </div>
+      <div class="form-group" *ngIf="form.status === 'Terminado'">
+        <label>Reseña</label>
+        <textarea [(ngModel)]="form.review" placeholder="¿Qué te pareció?..." rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Notas personales</label>
+        <textarea [(ngModel)]="form.notes" placeholder="Recomendado por..., Ver con..." rows="2"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="closeForm()">Cancelar</button>
+        <button class="btn-save" (click)="saveDrama()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
